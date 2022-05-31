@@ -216,6 +216,14 @@ all hosts being blocked, execute command " (:code "describe-variable") ", choose
 (:code "nyxt/blocker-mode:url-body") " slot." " To customize host blocking, read the "
 (:nxref :class-name 'nyxt/blocker-mode:blocker-mode) " documentation."))
 
+      (:nsection :title "Diff mode"
+        (:p "Diff mode computes and displays the differences between the contents of two
+buffers.")
+        (:p "First, make sure that those two buffers are open. Then run "
+            (:nxref :command 'nyxt/diff-mode:diff)
+            "and select the buffers to diff. Notice that the order does matter.")
+        (:p "A new buffer opens and displays the differences."))
+
       (:nsection :title "Custom commands"
         (:p "Creating your own invocable commands is similar to creating a Common
 Lisp function, except the form is " (:code "define-command") " instead of "
