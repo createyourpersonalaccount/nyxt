@@ -29,12 +29,20 @@ the highest standard on accessibility."))
 
 (export-always 'diff)
 (define-internal-page-command-global diff
-    (&key (old-buffer-id (id (prompt1 :prompt "Old buffer"
-                                      :sources (make-instance 'buffer-source
-                                                              :return-actions  nil))))
-          (new-buffer-id (id (prompt1 :prompt "New buffer"
-                                      :sources (make-instance 'buffer-source
-                                                              :return-actions  nil)))))
+    (&key (old-buffer-id (id (prompt1
+                               :prompt "Old buffer"
+                               :sources (make-instance
+                                         'buffer-source
+                                         :multi-selection-p nil
+                                         :return-actions nil))))
+          (new-buffer-id (id (prompt1
+                               :prompt "New buffer"
+                               :sources (make-instance
+                                         'buffer-source
+                                         :constructor (nyxt::buffer-initial-suggestions
+                                                       :current-is-last-p t)
+                                         :multi-selection-p nil
+                                         :return-actions nil)))))
     (diff-buffer "*diff*" 'diff-mode)
   "Show difference between two buffers"
   (let ((old-html (ffi-buffer-get-document (nyxt::buffers-get old-buffer-id)))
