@@ -41,9 +41,8 @@ the highest standard on accessibility."))
         (new-html (ffi-buffer-get-document (nyxt::buffers-get new-buffer-id))))
     (spinneret:with-html-string
       (:style (style (find-submode 'nyxt/diff-mode:diff-mode diff-buffer)))
-      (:raw
-       (html-diff:html-diff
-        old-html new-html
-        :insert-class "nyxt-diff-insert"
-        :delete-class "nyxt-diff-delete"
-        :replace-class "nyxt-diff-replace")))))
+      (:raw (html-diff:html-diff old-html
+                                 new-html
+                                 :insert-class "nyxt-diff-insert"
+                                 :delete-class "nyxt-diff-delete"
+                                 :replace-class "nyxt-diff-replace")))))
