@@ -27,30 +27,32 @@ They're based on the modus-operandi theme by Protesilaos Stavrou, which follows
 the highest standard on accessibility."))
   (:toggler-command-p nil))
 
-(export-always 'diff)
-(define-internal-page-command-global diff
-    (&key (old-buffer-id (id (prompt1
-                               :prompt "Old buffer"
-                               :sources (make-instance
-                                         'buffer-source
-                                         :multi-selection-p nil
-                                         :return-actions nil))))
-          (new-buffer-id (id (prompt1
-                               :prompt "New buffer"
-                               :sources (make-instance
-                                         'buffer-source
-                                         :constructor (nyxt::buffer-initial-suggestions
-                                                       :current-is-last-p t)
-                                         :multi-selection-p nil
-                                         :return-actions nil)))))
-    (diff-buffer "*diff*" 'diff-mode)
-  "Show difference between two buffers"
-  (let ((old-html (ffi-buffer-get-document (nyxt::buffers-get old-buffer-id)))
-        (new-html (ffi-buffer-get-document (nyxt::buffers-get new-buffer-id))))
-    (spinneret:with-html-string
-      (:style (style (find-submode 'nyxt/diff-mode:diff-mode diff-buffer)))
-      (:raw (html-diff:html-diff old-html
-                                 new-html
-                                 :insert-class "nyxt-diff-insert"
-                                 :delete-class "nyxt-diff-delete"
-                                 :replace-class "nyxt-diff-replace")))))
+(define-internal-scheme "diff"
+    (lambda (url buffer)
+      (declare (ignore url))
+      (buffer-load (url "diff://test") :buffer buffer)
+      (let ((old-html (ffi-buffer-get-document (prompt1
+                                                :prompt "Old buffer"
+                                                :sources (make-instance
+                                                          'buffer-source
+                                                          :multi-selection-p nil
+                                                          :return-actions nil))))
+            (new-html (ffi-buffer-get-document (prompt1
+                                                :prompt "New buffer"
+                                                :sources (make-instance
+                                                          'buffer-source
+                                                          :constructor (nyxt::buffer-initial-suggestions
+                                                                        :current-is-last-p t)
+                                                          :multi-selection-p nil
+                                                          :return-actions nil)))))
+        (enable-modes '(diff-mode) buffer)
+        (spinneret:with-html-string
+          (:style (style (find-submode 'nyxt/diff-mode:diff-mode buffer)))
+          (:raw (html-diff:html-diff old-html
+                                     new-html
+                                     :insert-class "nyxt-diff-insert"
+                                     :delete-class "nyxt-diff-delete"
+                                     :replace-class "nyxt-diff-replace")))))
+  ;; test if needed
+  ;; :secure-p t
+  )
