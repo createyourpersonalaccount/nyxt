@@ -22,6 +22,8 @@
             ("del.nyxt-diff-replace"
              :background-color "#efcbcf"
              :text-decoration "none"))
+          ;; FIXME Add these colors to the theme.  Check if they work well with
+          ;; dark themes.
           :documentation "Diff colours for its visual representation.
 They're based on the modus-operandi theme by Protesilaos Stavrou, which follows
 the highest standard on accessibility."))
