@@ -62,6 +62,4 @@ the highest standard on accessibility."))
                                      :insert-class "nyxt-diff-insert"
                                      :delete-class "nyxt-diff-delete"
                                      :replace-class "nyxt-diff-replace")))))
-  ;; test if needed
-  ;; :secure-p t
-  )
+  :secure-p t)
