@@ -29,6 +29,15 @@ They're based on the modus-operandi theme by Protesilaos Stavrou, which follows
 the highest standard on accessibility."))
   (:toggler-command-p nil))
 
+(define-command-global diff (&optional (url "diff://"))
+  "Show difference between two buffers."
+  ;; the new buffer doesn't get focus, why?
+  (let ((buffer (make-buffer :url url
+                             :title "Diff"
+                             :load-url-p nil
+                             :extra-modes '(diff-mode))))
+    (set-current-buffer (buffer-load url :buffer buffer))))
+
 (define-internal-scheme "diff"
     (lambda (url buffer)
       (declare (ignore url))
