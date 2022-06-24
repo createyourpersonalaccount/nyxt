@@ -32,19 +32,26 @@ the highest standard on accessibility."))
 (define-internal-scheme "diff"
     (lambda (url buffer)
       (declare (ignore url))
-      (buffer-load (url "diff://test") :buffer buffer)
       (let ((old-html (ffi-buffer-get-document (prompt1
                                                 :prompt "Old buffer"
                                                 :sources (make-instance
                                                           'buffer-source
+                                                          :constructor (nyxt::sort-by-time
+                                                                        (remove-if
+                                                                         (match-scheme "diff")
+                                                                         (buffer-list)))
                                                           :multi-selection-p nil
                                                           :return-actions nil))))
             (new-html (ffi-buffer-get-document (prompt1
                                                 :prompt "New buffer"
                                                 :sources (make-instance
                                                           'buffer-source
-                                                          :constructor (nyxt::buffer-initial-suggestions
-                                                                        :current-is-last-p t)
+                                                          :constructor (alex:rotate
+                                                                        (nyxt::sort-by-time
+                                                                         (remove-if
+                                                                          (match-scheme "diff")
+                                                                          (buffer-list)))
+                                                                        -1)
                                                           :multi-selection-p nil
                                                           :return-actions nil)))))
         (enable-modes '(diff-mode) buffer)
