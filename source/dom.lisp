@@ -239,26 +239,29 @@ Rely (in the order of importance) on:
 - Tag name.
 - CSS Classes.
 - Attributes.
-- Parent and sibling node selectors (recursively).
+- Parent node selectors (recursively).
 
 If none of those provides the unique selector, return the most specific selector
 calculated.
 
 Return two values:
 - The selector for the value.
-- A boolean for whether this selector is unique (no other nodes matching it)."
+- Whether this selector is unique (no other nodes matching it)."
   (let* ((tag-name (plump:tag-name element))
          (identifier (plump:get-attribute element "id"))
          (raw-classes (plump:get-attribute element "class"))
          ;; TODO: Remove other attributes, unreliable ones? For example, href
          ;; and type are reliable and are unlikely to change, while data-*
          ;; attributes are unreliable and can change any moment.
-         (attributes (remove-if (rcurry #'member '("class" "id") :test #'string=)
+         (attributes (remove-if (lambda (attribute)
+                                  (or (str:s-member '("class" "id") attribute)
+                                      (str:starts-with-p "data-" attribute)
+                                      (str:starts-with-p "nyxt-" attribute)))
                                 (alex:hash-table-keys (plump:attributes element))))
-         (classes (when raw-classes (remove-if #'str:blankp (str:split " " raw-classes))))
+         (classes (when raw-classes (mapcar #'clss:css-escape
+                                            (remove-if #'str:blankp (str:split " " raw-classes)))))
          (parents (parents element))
-         (family (plump:family element))
-         (previous (ignore-errors (plump:previous-element element)))
+         (family (plump:family-elements element))
          ;; Is it guaranteed that the topmost ancestor of a node is
          ;; `plump:root'? Anyway, it should work even if there's a single
          ;; `plump:element' as a root.
@@ -271,7 +274,7 @@ Return two values:
              (selreturn ()
                (return-from get-unique-selector (values selector (unique-p selector)))))
       ;; ID should be globally unique, so we check it first.
-      (when (and identifier (sera:single (clss:select (selconcat :sel "#" identifier)  root)))
+      (when (and identifier (sera:single (clss:select (selconcat :sel "#" (clss:css-escape identifier))  root)))
         (selreturn))
       ;; selconcat hack doesn't look nice here, but should work for cases of
       ;; both empty selector and ID selector.
@@ -284,15 +287,13 @@ Return two values:
               classes))
       (when attributes
         (mapc (lambda (attribute)
-                (when (unique-p (selconcat :sel "[" attribute "=\""
-                                            (plump:attribute element attribute) "\"]"))
+                (when (unique-p (selconcat :sel "[" (clss:css-escape attribute) "='"
+                                           (clss:css-escape (plump:attribute element attribute))
+                                           "']"))
                   (selreturn)))
               attributes))
       ;; Check for short and nice parent-child relations, like :only-child,
       ;; :last-child etc.
-      ;;
-      ;; FIXME: :nth-child would be extremely useful there, but it seems to by
-      ;; unpredictable in CLSS (or CSS?).
       (when (and parents
                  (sera:single family)
                  (unique-p (selconcat :sel ":only-child")))
@@ -307,9 +308,14 @@ Return two values:
                  (eq element (elt family (1- (length family))))
                  (unique-p (selconcat :sel ":last-child")))
         (selreturn))
-      ;; Then check for previous siblings.
-      (when (and previous
-                 (unique-p (selconcat (get-unique-selector previous)  " ~ " :sel)))
+      (when (and
+             parents
+             (not (sera:single family))
+             (not (eq element (elt family 0)))
+             (not (eq element (elt family (1- (length family)))))
+             (unique-p (selconcat
+                        :sel ":nth-child("
+                        (princ-to-string (1+ (position element family))) ")")))
         (selreturn))
       ;; Finally, go up the hierarchy.
       (when (and parents
