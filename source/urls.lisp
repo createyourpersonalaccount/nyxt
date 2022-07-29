@@ -409,7 +409,8 @@ guarantee of the same result."
     string)
 (defun lisp-url (&key (id (princ-to-string (nyxt:new-id))) (buffer (current-buffer))
                    title
-                   (callback (alex:required-argument 'callback)))
+                   (callback (unless (gethash id (nyxt::lisp-url-callbacks buffer))
+                               (alex:required-argument 'callback))))
   (unless buffer
     (error "Cannot make a `lisp-url' without BUFFER or current-buffer."))
   (sera:synchronized ((nyxt::lisp-url-callbacks buffer))
