@@ -169,6 +169,7 @@
                 :depends-on ("Core modes" "Modes")
                 :components
                 ((:file "help")
+                 (:file "setting")     ; REVIEW: Move to other module?
                  (:file "about")
                  (:file "tutorial")
                  (:file "changelog")
