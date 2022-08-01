@@ -449,8 +449,7 @@ The ARGS are used as a keyword arglist for the CALLBACK."
                              :callback ,(if (and (sera:single body)
                                                  (member (first (first body)) '(lambda function)))
                                             (first body)
-                                            `(lambda ()
-                                               ,@body))
+                                            `(lambda () ,@body))
                              :title ,title)
                             (quri:url-encode-params
                              (list ,@(loop for (name value . rest) on irregular-args by #'cddr
