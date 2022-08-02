@@ -482,6 +482,14 @@ to open a file, save it, switch buffer or delete current buffer.")
         (:code "M-y") " in Emacs scheme of "
         (:nxref :class-name 'nyxt/document-mode:document-mode) ".")
    (:li "Prompt-buffer now has familiar bindings for text cutting."))
+   (:li (:code "auto-mode")
+        " is now incorporated into Nyxt core, with its settings residing in "
+        (:nxref :class-name 'modable-buffer) " now.")
+   (:ul
+    (:li "There are default rules for Gopher, Gemini, and
+Nyxt-internal-pages.")
+    (:li "The rules file is now moved to auto-rules.lisp (instead of the old
+auto-mode-rules.lisp)")))
 
   (:h3 "Programming interface")
   (:ul
