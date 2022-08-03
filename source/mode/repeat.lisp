@@ -23,6 +23,11 @@
         (declare (ignore path-url))
         (when (repeat-action mode)
           (funcall (repeat-action mode) mode))))
+   (nyxt/process-mode:cleanup
+    #'(lambda (path-url mode)
+        (declare (ignore path-url))
+        (setf (repeat-action mode) nil
+              (repeat-count mode) nil)))
    (repeat-count
     nil
     :type (or integer null)
