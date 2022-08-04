@@ -1005,7 +1005,11 @@ See `finalize-buffer'."
       (setf modifiers (funcall (modifier-translator *browser*)
                                (webkit:webkit-navigation-action-get-modifiers navigation-action))))
     (setf url (quri:uri (webkit:webkit-uri-request-uri request)))
-    (apply-auto-rules url buffer)
+    ;; `toplevel-p'
+    (when (quri:uri=
+           url (quri:uri (webkit:webkit-web-view-uri
+                          (gtk-object buffer))))
+      (apply-auto-rules url buffer))
     (let* ((request-data
             (hooks:run-hook
              (request-resource-hook buffer)
