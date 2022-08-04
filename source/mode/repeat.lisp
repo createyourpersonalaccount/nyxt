@@ -27,7 +27,8 @@
     #'(lambda (path-url mode)
         (declare (ignore path-url))
         (setf (repeat-action mode) nil
-              (repeat-count mode) nil)))
+              (repeat-count mode) nil
+              (repeat-interval mode) 1)))
    (repeat-count
     nil
     :type (or integer null)
