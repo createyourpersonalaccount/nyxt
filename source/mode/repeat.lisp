@@ -56,17 +56,19 @@ It takes a `repeat-mode' instance as argument.")))
 
 (define-command-global repeat-every (&optional seconds function)
   "Prompt for FUNCTION to be run every SECONDS."
-  (let* ((seconds (or seconds
-                      (ignore-errors
-                       (parse-integer
-                        (prompt1 :prompt "Repeat every X seconds"
-                                 :input "5"
-                                 :sources 'prompter:raw-source))))))
-    (when seconds
-      (enable-modes :mode 'repeat-mode
-                    :buffers (current-buffer)
-                    :repeat-interval seconds
-                    :repeat-action function))))
+  (alex:when-let ((seconds (or seconds
+                               (ignore-errors
+                                (parse-integer
+                                 (prompt1 :prompt "Repeat every X seconds"
+                                          :input "5"
+                                          :sources 'prompter:raw-source))))))
+    (disable-modes :modes 'repeat-mode :buffers (current-buffer))
+    (apply #'enable-modes
+           :modes 'repeat-mode
+           :buffers (current-buffer)
+           :repeat-interval seconds
+           (when function
+             (list :repeat-action function)))))
 
 (define-command-global repeat-times (&optional times function)
   "Prompt for FUNCTION to be run a number of TIMES."
@@ -77,12 +79,15 @@ It takes a `repeat-mode' instance as argument.")))
                               :input "4"
                               :sources 'prompter:raw-source))))))
     (when times
-      (enable-modes :modes 'repeat-mode
-                    :buffers (current-buffer)
-                    :repeat-count times
-                    :repeat-action #'(lambda (mode)
-                                       (declare (ignore mode))
-                                       (nyxt::run function))))))
+      (disable-modes :modes 'repeat-mode :buffers (current-buffer))
+      (apply #'enable-modes
+             :modes 'repeat-mode
+             :buffers (current-buffer)
+             :repeat-count times
+             (when function
+               (list :repeat-action #'(lambda (mode)
+                                        (declare (ignore mode))
+                                        (nyxt::run function))))))))
 
 (defvar *repeat-times-stack* 0
   "The current number of repetitions.")
