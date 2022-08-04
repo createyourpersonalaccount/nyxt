@@ -471,7 +471,18 @@ SLY install.")
         (:nxref :command 'nyxt/document-mode:paste-from-clipboard-ring) " command.")
    (:li "Major improvement of " (:nxref :class-name 'nyxt/editor-mode:editor-mode) ".")
    (:li (:code "execute-command")
-        " evaluates arbitrary Lisp code and provides inline documentation for symbols."))
+        " evaluates arbitrary Lisp code and provides inline documentation for symbols.")
+   (:li (:code "auto-mode")
+        " is incorporated into Nyxt core, with its settings residing in "
+        (:nxref :class-name 'modable-buffer) ".")
+   (:ul
+    (:li "The new "
+         (:nxref :slot 'apply-all-matching-auto-rules-p :class-name 'modable-buffer)
+         " allows you to apply all the matching auto-rules instead of the most
+specific one.")
+    (:li "There are default rules for Gopher, Gemini, and Nyxt-internal-pages.")
+    (:li "The rules file is now moved to auto-rules.lisp (instead of the old
+auto-mode-rules.lisp)")))
 
   (:h3 "Bindings")
   (:ul
@@ -482,14 +493,6 @@ to open a file, save it, switch buffer or delete current buffer.")
         (:code "M-y") " in Emacs scheme of "
         (:nxref :class-name 'nyxt/document-mode:document-mode) ".")
    (:li "Prompt-buffer now has familiar bindings for text cutting."))
-   (:li (:code "auto-mode")
-        " is now incorporated into Nyxt core, with its settings residing in "
-        (:nxref :class-name 'modable-buffer) " now.")
-   (:ul
-    (:li "There are default rules for Gopher, Gemini, and
-Nyxt-internal-pages.")
-    (:li "The rules file is now moved to auto-rules.lisp (instead of the old
-auto-mode-rules.lisp)")))
 
   (:h3 "Programming interface")
   (:ul
