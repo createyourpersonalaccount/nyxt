@@ -59,7 +59,7 @@ DIFFABLE-URL-SOURCES allow you to configure the sources URLs are selected from."
   (alex:if-let ((existing-buffer
                  (find url (remove-if (lambda (buffer)
                                         (or (url-empty-p (url buffer))
-                                            (not (quri:uri-p (url buffer)))))
+                                            (not (valid-url-p (url buffer)))))
                                       (buffer-list))
                        :test #'quri:uri= :key #'url)))
     (ffi-buffer-get-document existing-buffer)
