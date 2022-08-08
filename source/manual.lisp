@@ -218,8 +218,7 @@ all hosts being blocked, execute command " (:code "describe-variable") ", choose
 
       (:nsection :title "Diff mode"
         (:p "Diff mode computes and displays the content differences between two URLs.")
-        (:p "First, make sure that those two buffers are open. Then run "
-            (:nxref :command 'nyxt/diff-mode:diff)
+        (:p "To compare two URLs, run " (:nxref :command 'nyxt/diff-mode:diff)
             "and select the URLs to diff. Notice that the order does matter.")
         (:p "A new buffer opens and displays the differences."))
 
