@@ -407,8 +407,7 @@ guarantee of the same result."
                     (:title (maybe string))
                     (:callback (or function symbol)))
     string)
-(defun lisp-url (&key (id (princ-to-string (nyxt:new-id))) (buffer (current-buffer))
-                   title
+(defun lisp-url (&key title (id (princ-to-string (nyxt:new-id))) (buffer (current-buffer))
                    (callback (unless (gethash id (nyxt::lisp-url-callbacks buffer))
                                (alex:required-argument 'callback))))
   (unless buffer
@@ -421,16 +420,68 @@ guarantee of the same result."
           title (when title
                   (quri:url-encode title))))
 
-(ps:defpsmacro nyxt/ps::lisp-eval ((&rest args &key (buffer '(nyxt:current-buffer)) title id callback
+
+(ps:defpsmacro nyxt/ps::lisp-call (id &rest args &key title (buffer (current-buffer)) &allow-other-keys)
+  "Call the ID-bound function on the Lisp side.
+
+Return a Promise succeeding after the code runs on the Lisp side.
+
+ID should be an identifier of an already defined `lisp-url'.
+
+The ARGS are used as a keyword arglist for the function bound to the defined URL callback."
+  (let ((irregular-args (alexandria:remove-from-plist args :buffer :title)))
+    `(fetch (ps:lisp (str:concat
+                      (lisp-url :id ,id :buffer ,buffer :title ,title)
+                      (quri:url-encode-params
+                       (list ,@(loop for (name value . rest) on irregular-args by #'cddr
+                                     collect `(cons (symbol->param-name ,name)
+                                                    (value->param-value ,value)))))))
+            (ps:create :mode "no-cors"))))
+(export-always 'nyxt/ps::lisp-call :nyxt/ps)
+
+(export-always 'lisp-url-flet)
+(defmacro lisp-url-flet (buffer ((name (&rest args) &body binding-body) &rest other-bindings)
+                         &body body)
+  "Bind the NAMEs of bindings to both
+- the `nyxt/ps:lisp-call'-able IDs, and
+- macros expanding to the Parenscript form calling them.
+
+Bindings are only available in local scope, and are only defined for BUFFER.
+
+Example:
+\(nyxt::lisp-url-flet (nyxt:current-buffer)
+    ((hello (&key name) (nyxt:echo \"Hello, ~a!\" name)))
+  (nyxt:ffi-buffer-evaluate-javascript (nyxt:current-buffer) (hello :name \"Stranger\"))
+  ;; or equivalent
+  (nyxt:ffi-buffer-evaluate-javascript
+   (nyxt:current-buffer)
+   (ps:ps (nyxt/ps:lisp-call hello :buffer (nyxt:current-buffer) :name \"Stranger\")))))
+
+BEWARE: While `lisp-url's defined by this macro stay defined for a little while
+longer than this macro lasts, it's not recommended to use them outside the
+scope."
+  (let ((id (princ-to-string (new-id))))
+    `(let ((,name (progn (lisp-url :id ,id
+                                   :buffer ,buffer
+                                   :callback (lambda (,@args) ,@binding-body))
+                         ,id)))
+       (macrolet ((,name (&rest args)
+                    ;; Everything that uses commas comes from the outside,
+                    ;; everything with list/cons/quote belongs to this
+                    ;; macro. Otherwise it's really hard to keep track of.
+                    (cons (quote ps:ps)
+                          (cons (append (list (quote nyxt/ps:lisp-call) ,id :buffer ,buffer)
+                                        args)
+                                nil))))
+         ,@(if other-bindings
+               `((lisp-url-flet ,buffer (,@other-bindings)
+                   ,@body))
+               body)))))
+
+(ps:defpsmacro nyxt/ps::lisp-eval ((&rest args &key (buffer '(nyxt:current-buffer)) title callback
                                           &allow-other-keys)
                                    &body body)
   "Request the lisp: URL and invoke CALLBACK when there's a successful result.
-
-ID is either caller-provided or auto-generated.
-- If it's caller-provided, this ID/CALLBACK is reusable with different
-  ARGS.
-- If it's auto-generated, it's not accessible to the caller and thus not
-  reusable.
 
 TITLE is purely informative.
 
@@ -439,29 +490,28 @@ BUFFER must be a `document-buffer'.
 The ARGS are used as a keyword arglist for the CALLBACK."
   ;; We define it here and not in parenscript-macro because we need
   ;; `nyxt::lisp-url-callbacks' while parenscript-macro is Nyxt-independent.
-  (let ((irregular-args (alexandria:remove-from-plist
-                         args :id :buffer :callback :title)))
-    `(let ((url (ps:lisp (let ((request-id (or ,id (string (gensym "")))))
-                           (str:concat
-                            (lisp-url
-                             :id request-id
-                             :buffer ,buffer
-                             :callback ,(if (and (sera:single body)
-                                                 (member (first (first body)) '(lambda function)))
-                                            (first body)
-                                            `(lambda () ,@body))
-                             :title ,title)
-                            (quri:url-encode-params
-                             (list ,@(loop for (name value . rest) on irregular-args by #'cddr
-                                           collect `(cons (symbol->param-name ,name)
-                                                          (value->param-value ,value))))))))))
-       (let ((request (fetch url (ps:create :mode "no-cors"))))
-         (when ,callback
-           (chain request
-                  (then (lambda (response)
-                          (when (@ response ok)
-                            (chain response (json)))))
-                  (then ,callback)))))))
+  (let ((irregular-args
+          (alexandria:remove-from-plist args :buffer :callback :title))
+        (id (string (gensym ""))))
+    `(progn
+       (ps:lisp
+        ;; FIXME: Define it, but don't yet use. Quirky idiom.
+        ;; NOTE: This macroexpands before the translation of
+        ;; `nyxt/ps:lisp-call` above, so should not be much problem
+        (lisp-url
+         :id ,id
+         :buffer ,buffer
+         :callback ,(if (and (sera:single body)
+                             (member (first (first body)) '(lambda function)))
+                        (first body)
+                        `(lambda () ,@body))))
+       (let ((promise (nyxt/ps:lisp-call ,id :buffer ,buffer :title ,title ,@irregular-args)))
+         ,@(when callback
+             `((ps:chain promise
+                         (then (lambda (response)
+                                 (when (@ response ok)
+                                   (chain response (json)))))
+                         (then ,callback))))))))
 (export-always 'nyxt/ps::lisp-eval :nyxt/ps)
 
 (define-internal-scheme "lisp"
