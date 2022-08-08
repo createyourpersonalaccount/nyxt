@@ -29,35 +29,61 @@ They're based on the modus-operandi theme by Protesilaos Stavrou, which follows
 the highest standard on accessibility."))
   (:toggler-command-p nil))
 
-(define-command-global diff (&optional (url "diff://"))
-  "Show difference between two buffers."
-  (make-buffer-focus :url url))
+(define-class open-urls-source (prompter:source)
+  ((prompter:name "URLs currently open")
+   (prompter:constructor (mapcar #'url (buffer-list))))
+  (:export-class-name-p t)
+  (:metaclass user-class))
+
+(defmethod prompter:object-attributes ((uri quri:uri) (source prompter:source))
+  `("URL" ,(render-url uri)))
+
+(define-command-global diff (&key (diffable-url-sources
+                                   (list (make-instance 'open-urls-source)
+                                         (make-instance 'global-history-source
+                                                        :return-actions (list (lambda-mapped-command url))
+                                                        :multi-selection-p nil)))
+                             (old-url (prompt1 :prompt "Old URL"
+                                               :sources diffable-url-sources))
+                             (new-url (prompt1 :prompt "New URL"
+                                               :sources diffable-url-sources)))
+  "Show the difference between the OLD-URL and NEW-URL.
+
+DIFFABLE-URL-SOURCES allow you to configure the sources URLs are selected from."
+  (when (and old-url new-url)
+    (make-buffer-focus
+     :url (format nil "diff:~a/~a" (quri:url-encode (quri:render-uri old-url))
+                  (quri:url-encode (quri:render-uri new-url))))))
+
+(defun fetch-url-source (url)
+  (alex:if-let ((existing-buffer
+                 (find url (remove-if (lambda (buffer)
+                                        (or (url-empty-p (url buffer))
+                                            (not (quri:uri-p (url buffer)))))
+                                      (buffer-list))
+                       :test #'quri:uri= :key #'url)))
+    (ffi-buffer-get-document existing-buffer)
+    (let ((channel (nyxt::make-channel 1)))
+      (run-thread "diff-mode URL fetching"
+        (let ((buffer (make-background-buffer :url url)))
+          (hooks:add-hook
+           (buffer-loaded-hook buffer)
+           (make-instance 'hooks:handler
+                          :fn (lambda (buffer)
+                                (sleep 1)
+                                (calispel:! channel (ffi-buffer-get-document buffer))
+                                (hooks:remove-hook (buffer-loaded-hook buffer)
+                                                   'buffer-source-fetching))
+                          :name 'buffer-source-fetching))))
+      (calispel:? channel))))
 
 (define-internal-scheme "diff"
     (lambda (url buffer)
-      (declare (ignore url))
-      (let* ((old-buffer (prompt1 :prompt "Old buffer"
-                                  :sources (make-instance
-                                            'buffer-source
-                                            :constructor (nyxt::sort-by-time
-                                                          (remove-if
-                                                           (match-scheme "diff")
-                                                           (buffer-list)))
-                                            :multi-selection-p nil
-                                            :return-actions nil)))
-             (new-buffer (prompt1 :prompt "New buffer"
-                                  :sources (make-instance
-                                            'buffer-source
-                                            :constructor (alex:rotate
-                                                          (nyxt::sort-by-time
-                                                           (remove-if
-                                                            (match-scheme "diff")
-                                                            (buffer-list)))
-                                                          -1)
-                                            :multi-selection-p nil
-                                            :return-actions nil)))
-             (old-html (ffi-buffer-get-document old-buffer))
-             (new-html (ffi-buffer-get-document new-buffer))
+      (let* ((parts (str:split "/" (quri:uri-path (quri:uri url))))
+             (old-url (quri:uri (quri:url-decode (first parts))))
+             (new-url (quri:uri (quri:url-decode (second parts))))
+             (old-html (fetch-url-source old-url))
+             (new-html (fetch-url-source new-url))
              (diff (html-diff:html-diff old-html new-html
                                         :insert-class "nyxt-diff-insert"
                                         :delete-class "nyxt-diff-delete"
@@ -65,13 +91,15 @@ the highest standard on accessibility."))
              (diff-dom (nyxt/dom:named-html-parse diff)))
         (loop for element across (clss:select "[href], [src]" diff-dom)
               when (plump:attribute element "href")
-                do (plump:set-attribute element "href"
-                                        (quri:render-uri (quri:merge-uris (quri:uri (plump:attribute element "href"))
-                                                                          (url new-buffer))))
+                do (plump:set-attribute
+                    element "href"
+                    (quri:render-uri
+                     (quri:merge-uris (quri:uri (plump:attribute element "href")) new-url)))
               when (plump:attribute element "src")
-                do (plump:set-attribute element "src"
-                                        (quri:render-uri (quri:merge-uris (quri:uri (plump:attribute element "src"))
-                                                                          (url new-buffer)))))
+                do (plump:set-attribute
+                    element "src"
+                    (quri:render-uri
+                     (quri:merge-uris (quri:uri (plump:attribute element "src")) new-url))))
         (enable-modes '(diff-mode) buffer)
         (spinneret:with-html-string
           (:style (style (find-submode 'nyxt/diff-mode:diff-mode buffer)))
