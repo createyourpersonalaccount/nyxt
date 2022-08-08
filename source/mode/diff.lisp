@@ -52,7 +52,8 @@ the highest standard on accessibility."))
 DIFFABLE-URL-SOURCES allow you to configure the sources URLs are selected from."
   (when (and old-url new-url)
     (make-buffer-focus
-     :url (format nil "diff:~a/~a" (quri:url-encode (quri:render-uri old-url))
+     :url (format nil "diff:?old=~a&new=~a"
+                  (quri:url-encode (quri:render-uri old-url))
                   (quri:url-encode (quri:render-uri new-url))))))
 
 (defun fetch-url-source (url)
@@ -79,9 +80,9 @@ DIFFABLE-URL-SOURCES allow you to configure the sources URLs are selected from."
 
 (define-internal-scheme "diff"
     (lambda (url buffer)
-      (let* ((parts (str:split "/" (quri:uri-path (quri:uri url))))
-             (old-url (quri:uri (quri:url-decode (first parts))))
-             (new-url (quri:uri (quri:url-decode (second parts))))
+      (let* ((params (quri:uri-query-params (quri:uri url)))
+             (old-url (quri:uri (quri:url-decode (str:s-assoc-value params "old"))))
+             (new-url (quri:uri (quri:url-decode (str:s-assoc-value params "new"))))
              (old-html (fetch-url-source old-url))
              (new-html (fetch-url-source new-url))
              (diff (html-diff:html-diff old-html new-html
