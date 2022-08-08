@@ -35,7 +35,7 @@ the highest standard on accessibility."))
   (:export-class-name-p t)
   (:metaclass user-class))
 
-(defmethod prompter:object-attributes ((uri quri:uri) (source prompter:source))
+(defmethod prompter:object-attributes ((uri quri:uri) (source open-urls-source))
   `("URL" ,(render-url uri)))
 
 (define-command-global diff (&key (diffable-url-sources
