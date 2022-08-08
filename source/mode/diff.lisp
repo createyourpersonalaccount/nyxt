@@ -73,7 +73,8 @@ DIFFABLE-URL-SOURCES allow you to configure the sources URLs are selected from."
                                 (sleep 1)
                                 (calispel:! channel (ffi-buffer-get-document buffer))
                                 (hooks:remove-hook (buffer-loaded-hook buffer)
-                                                   'buffer-source-fetching))
+                                                   'buffer-source-fetching)
+                                (ffi-buffer-delete buffer))
                           :name 'buffer-source-fetching))))
       (calispel:? channel))))
 
