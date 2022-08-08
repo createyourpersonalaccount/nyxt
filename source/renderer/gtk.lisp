@@ -963,13 +963,9 @@ See `finalize-buffer'."
           t))))
 
 (define-ffi-method on-signal-decide-policy ((buffer gtk-buffer) response-policy-decision policy-decision-type-response)
-  (let ((is-new-window nil) (is-known-type t) (event-type :other)
-        (navigation-action nil) (navigation-type nil)
-        (mouse-button nil) (modifiers ())
-        (url nil) (request nil)
-        (mime-type nil)
-        (method nil) (file-name nil)
-        response)
+  (let ((is-known-type t) (event-type :other) (modifiers ())
+        is-new-window navigation-action navigation-type
+        mouse-button url request mime-type method file-name toplevel-p response)
     (match policy-decision-type-response
       (:webkit-policy-decision-type-navigation-action
        (setf navigation-type (webkit:webkit-navigation-policy-decision-navigation-type response-policy-decision)))
@@ -1005,10 +1001,10 @@ See `finalize-buffer'."
       (setf modifiers (funcall (modifier-translator *browser*)
                                (webkit:webkit-navigation-action-get-modifiers navigation-action))))
     (setf url (quri:uri (webkit:webkit-uri-request-uri request)))
-    ;; `toplevel-p'
-    (when (quri:uri=
-           url (quri:uri (webkit:webkit-web-view-uri
-                          (gtk-object buffer))))
+    (setf toplevel-p (quri:uri=
+                      url (quri:uri (webkit:webkit-web-view-uri
+                                     (gtk-object buffer)))))
+    (when toplevel-p
       (apply-auto-rules url buffer))
     (let* ((request-data
             (hooks:run-hook
@@ -1022,9 +1018,7 @@ See `finalize-buffer'."
                                               :event-type event-type
                                               :new-window-p is-new-window
                                               :http-method method
-                                              :toplevel-p (quri:uri=
-                                                           url (quri:uri (webkit:webkit-web-view-uri
-                                                                          (gtk-object buffer))))
+                                              :toplevel-p toplevel-p
                                               :mime-type mime-type
                                               :known-type-p is-known-type
                                               :file-name file-name)))
