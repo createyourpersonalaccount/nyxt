@@ -70,7 +70,6 @@ DIFFABLE-URL-SOURCES allow you to configure the sources URLs are selected from."
            (buffer-loaded-hook buffer)
            (make-instance 'hooks:handler
                           :fn (lambda (buffer)
-                                (sleep 1)
                                 (calispel:! channel (ffi-buffer-get-document buffer))
                                 (hooks:remove-hook (buffer-loaded-hook buffer)
                                                    'buffer-source-fetching)
