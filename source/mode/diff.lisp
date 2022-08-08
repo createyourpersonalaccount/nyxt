@@ -67,15 +67,10 @@ DIFFABLE-URL-SOURCES allow you to configure the sources URLs are selected from."
     (let ((channel (nyxt::make-channel 1)))
       (run-thread "diff-mode URL fetching"
         (let ((buffer (make-background-buffer :url url)))
-          (hooks:add-hook
-           (buffer-loaded-hook buffer)
-           (make-instance 'hooks:handler
-                          :fn (lambda (buffer)
-                                (calispel:! channel (ffi-buffer-get-document buffer))
-                                (hooks:remove-hook (buffer-loaded-hook buffer)
-                                                   'buffer-source-fetching)
-                                (ffi-buffer-delete buffer))
-                          :name 'buffer-source-fetching))))
+          (hooks:once-on (buffer-loaded-hook buffer)
+              (buffer)
+            (calispel:! channel (ffi-buffer-get-document buffer))
+            (ffi-buffer-delete buffer))))
       (calispel:? channel))))
 
 (define-internal-scheme "diff"
