@@ -30,7 +30,7 @@ the highest standard on accessibility."))
   (:toggler-command-p nil))
 
 (define-class open-urls-source (prompter:source)
-  ((prompter:name "URLs currently open")
+  ((prompter:name "Currently open URLs")
    (prompter:constructor (mapcar #'url (buffer-list))))
   (:export-class-name-p t)
   (:metaclass user-class))
