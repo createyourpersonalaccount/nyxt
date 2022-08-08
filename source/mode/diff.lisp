@@ -31,44 +31,48 @@ the highest standard on accessibility."))
 
 (define-command-global diff (&optional (url "diff://"))
   "Show difference between two buffers."
-  ;; the new buffer doesn't get focus, why?
-  (let ((buffer (make-buffer :url url
-                             :title "Diff"
-                             :load-url-p nil
-                             :extra-modes '(diff-mode))))
-    (set-current-buffer (buffer-load url :buffer buffer))))
+  (make-buffer-focus :url url))
 
 (define-internal-scheme "diff"
     (lambda (url buffer)
       (declare (ignore url))
-      (let ((old-html (ffi-buffer-get-document (prompt1
-                                                :prompt "Old buffer"
-                                                :sources (make-instance
-                                                          'buffer-source
-                                                          :constructor (nyxt::sort-by-time
-                                                                        (remove-if
-                                                                         (match-scheme "diff")
-                                                                         (buffer-list)))
-                                                          :multi-selection-p nil
-                                                          :return-actions nil))))
-            (new-html (ffi-buffer-get-document (prompt1
-                                                :prompt "New buffer"
-                                                :sources (make-instance
-                                                          'buffer-source
-                                                          :constructor (alex:rotate
-                                                                        (nyxt::sort-by-time
-                                                                         (remove-if
-                                                                          (match-scheme "diff")
-                                                                          (buffer-list)))
-                                                                        -1)
-                                                          :multi-selection-p nil
-                                                          :return-actions nil)))))
+      (let* ((old-buffer (prompt1 :prompt "Old buffer"
+                                  :sources (make-instance
+                                            'buffer-source
+                                            :constructor (nyxt::sort-by-time
+                                                          (remove-if
+                                                           (match-scheme "diff")
+                                                           (buffer-list)))
+                                            :multi-selection-p nil
+                                            :return-actions nil)))
+             (new-buffer (prompt1 :prompt "New buffer"
+                                  :sources (make-instance
+                                            'buffer-source
+                                            :constructor (alex:rotate
+                                                          (nyxt::sort-by-time
+                                                           (remove-if
+                                                            (match-scheme "diff")
+                                                            (buffer-list)))
+                                                          -1)
+                                            :multi-selection-p nil
+                                            :return-actions nil)))
+             (old-html (ffi-buffer-get-document old-buffer))
+             (new-html (ffi-buffer-get-document new-buffer))
+             (diff (html-diff:html-diff old-html new-html
+                                        :insert-class "nyxt-diff-insert"
+                                        :delete-class "nyxt-diff-delete"
+                                        :replace-class "nyxt-diff-replace"))
+             (diff-dom (nyxt/dom:named-html-parse diff)))
+        (loop for element across (clss:select "[href], [src]" diff-dom)
+              when (plump:attribute element "href")
+                do (plump:set-attribute element "href"
+                                        (quri:render-uri (quri:merge-uris (quri:uri (plump:attribute element "href"))
+                                                                          (url new-buffer))))
+              when (plump:attribute element "src")
+                do (plump:set-attribute element "src"
+                                        (quri:render-uri (quri:merge-uris (quri:uri (plump:attribute element "src"))
+                                                                          (url new-buffer)))))
         (enable-modes '(diff-mode) buffer)
         (spinneret:with-html-string
           (:style (style (find-submode 'nyxt/diff-mode:diff-mode buffer)))
-          (:raw (html-diff:html-diff old-html
-                                     new-html
-                                     :insert-class "nyxt-diff-insert"
-                                     :delete-class "nyxt-diff-delete"
-                                     :replace-class "nyxt-diff-replace")))))
-  :secure-p t)
+          (:raw (plump:serialize diff-dom nil))))))
