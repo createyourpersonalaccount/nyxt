@@ -400,7 +400,6 @@ guarantee of the same result."
                     (t (error "Cannot display evaluation result"))))))))))
   :local-p t)
 
-(export-always 'lisp-url)
 (-> lisp-url (&rest t &key
                     (:id string)
                     (:buffer t) ;; `document-buffer', actually.
