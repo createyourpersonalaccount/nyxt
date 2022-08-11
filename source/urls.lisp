@@ -494,9 +494,9 @@ The ARGS are used as a keyword arglist for the CALLBACK."
         (id (string (gensym ""))))
     `(progn
        (ps:lisp
-        ;; FIXME: Define it, but don't yet use. Quirky idiom.
-        ;; NOTE: This macroexpands before the translation of
-        ;; `nyxt/ps:lisp-call` above, so should not be much problem
+        ;; FIXME: We define a URL, but don't use it anywhere, we only use its
+        ;; ID. Quirky idiom. Maybe somehow only define an ID without string
+        ;; generation?
         (lisp-url
          :id ,id
          :buffer ,buffer
