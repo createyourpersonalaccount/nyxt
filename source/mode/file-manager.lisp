@@ -15,7 +15,13 @@
     (nyxt:set-prompt-buffer-input (namestring parent) prompt-buffer)))
 
 (define-mode file-manager-mode (nyxt/prompt-buffer-mode:prompt-buffer-mode)
-  "Prompt buffer mode for file choosing."
+  "Prompt buffer mode for file choosing.
+
+Allows to select files and act on them. In particular, alternative return
+actions allow to:
+- Delete files.
+- Rename files.
+- Open files and directories with a chosen external program."
   ((visible-in-status-p nil)
    (keyscheme-map
     (define-keyscheme-map "file-manager-mode" ()
