@@ -345,7 +345,7 @@ Return two values:
 (export-always 'find-text)
 (defmethod find-text ((text string) (element plump:nesting-node)
                       &key (test #'search))
-  "Find all the matches for the TEXT in ELEMENT and its children.
+  "Find all matches of TEXT in ELEMENT and its children.
 
 TEST should be a function of two arguments comparing TEXT with element's
 `plump:text' and returning a boolean for whether there's a match."
