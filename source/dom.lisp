@@ -350,11 +350,10 @@ Return two values:
 
 TEST should be a function of two arguments comparing TEXT with element's
 `plump:text' and returning a boolean for whether there's a match."
-  (flet ((matches (elem)
-           (find-text text elem :test test)))
+  (flet ((find-text-iter (elem) (find-text text elem :test test)))
     (when (funcall test text (plump:text element))
       (or (remove-if #'plump:fulltext-element-p
-                     (alex:mappend #'matches
+                     (alex:mappend #'find-text-iter
                                    (coerce (plump:child-elements element) 'list)))
           (list element)))))
 
