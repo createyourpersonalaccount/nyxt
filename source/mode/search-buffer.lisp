@@ -10,7 +10,7 @@
   ((visible-in-status-p nil)
    (rememberable-p nil)
    (test-function
-    #'str:containsp
+    #'search-string
     :type function
     :documentation "The function that determines whether a search match is found.
 
@@ -45,6 +45,10 @@ You can redefine it to enable regex-based search, for example:
       (list
        "/" 'search-buffer
        "?" 'remove-search-hints)))))
+
+(defun search-string (substring s &key case-sensitive-p)
+  (let ((test (if case-sensitive-p #'string= #'string-equal)))
+    (search substring s :test test)))
 
 (define-class search-match ()
   ((identifier)
