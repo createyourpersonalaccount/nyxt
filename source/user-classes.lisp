@@ -3,8 +3,9 @@
 
 (in-package :nyxt)
 
-(defclass user-class (standard-class)
+(defclass user-mixin-class ()
   ((customize-hook :initform (make-instance 'hooks:hook-any)
+                   :accessor customize-hook
                    :documentation "An internal hook to add customization handlers to.
 
 Reserved for `define-configuration'.
@@ -13,15 +14,28 @@ Prefer `define-configuration' and `customize-instance' instead."))
   (:documentation "Classes using this metaclass will call `customize-instance'
 on instantiation.
 This is useful to expose a class configuration knob to the user."))
+
+(defclass user-class (standard-class user-mixin-class)
+  ()
+  (:documentation "User-configurable value class.
+Can be configured using `customize-instance' and `customize-hook'."))
 (export-always 'user-class)
 
-(defmethod closer-mop:validate-superclass ((class user-class)
-                                           (superclass standard-class))
-  t)
+(defmethod closer-mop:validate-superclass ((class user-class) (superclass standard-class)) t)
+(defmethod closer-mop:validate-superclass ((superclass standard-class) (class user-class)) t)
+(defmethod closer-mop:validate-superclass ((class user-class) (superclass user-mixin-class)) t)
+(defmethod closer-mop:validate-superclass ((superclass user-mixin-class) (class user-class)) t)
 
-(defmethod closer-mop:validate-superclass ((superclass standard-class)
-                                           (class user-class))
-  t)
+(defclass user-funcallable-class (closer-mop:funcallable-standard-class user-mixin-class)
+  ()
+  (:documentation "Use-configurable funcallable class.
+Can be configured using `customize-instance' and `customize-hook'."))
+(export-always 'user-funcallable-class)
+
+(defmethod closer-mop:validate-superclass ((class user-funcallable-class) (superclass closer-mop:funcallable-standard-class)) t)
+(defmethod closer-mop:validate-superclass ((superclass closer-mop:funcallable-standard-class) (class user-funcallable-class)) t)
+(defmethod closer-mop:validate-superclass ((class user-funcallable-class) (superclass user-mixin-class)) t)
+(defmethod closer-mop:validate-superclass ((superclass user-mixin-class) (class user-funcallable-class)) t)
 
 (export-always 'customize-instance)
 (defgeneric customize-instance (object &key &allow-other-keys)
@@ -39,34 +53,7 @@ Do not specialize the standard method in public code, prefer
 `customize-instance :after' for code that relies on finalized slot values."))
 
 (defmethod #+nyxt-debug-make-instance cl:make-instance #-nyxt-debug-make-instance make-instance
-    :around ((class user-class) &rest initargs &key &allow-other-keys)
-  (sera:lret ((initialized-object (call-next-method)))
-    (mapcar (lambda (class)
-              (hooks:run-hook (slot-value class 'customize-hook) initialized-object))
-            (sera:filter #'user-class-p (cons class (mopu:superclasses class))))
-    (apply #'customize-instance initialized-object initargs)))
-
-(defclass user-funcallable-class (closer-mop:funcallable-standard-class)
-  ((customize-hook :initform (make-instance 'hooks:hook-any)
-                   :documentation "An internal hook to add customization handlers to.
-
-Reserved for `define-configuration'.
-
-Prefer `define-configuration' and `customize-instance' instead."))
-  (:documentation "Classes using this metaclass will call `customize-instance' on instantiation.
-This is useful to expose a class configuration knob to the user."))
-(export-always 'user-funcallable-class)
-
-(defmethod closer-mop:validate-superclass ((class user-funcallable-class)
-                                           (superclass closer-mop:funcallable-standard-class))
-  t)
-
-(defmethod closer-mop:validate-superclass ((superclass closer-mop:funcallable-standard-class)
-                                           (class user-funcallable-class))
-  t)
-
-(defmethod #+nyxt-debug-make-instance cl:make-instance #-nyxt-debug-make-instance make-instance
-  :around ((class user-funcallable-class) &rest initargs &key &allow-other-keys)
+    :around ((class user-mixin-class) &rest initargs &key &allow-other-keys)
   (sera:lret ((initialized-object (call-next-method)))
     (mapcar (lambda (class)
               (hooks:run-hook (slot-value class 'customize-hook) initialized-object))
