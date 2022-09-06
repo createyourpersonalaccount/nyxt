@@ -33,7 +33,7 @@ signalled.")
     :type local-time:timestamp
     :documentation "Last time this command was called from prompt buffer.
 Useful to sort the commands by most recent use."))
-  (:metaclass closer-mop:funcallable-standard-class)
+  (:metaclass user-funcallable-class)
   (:accessor-name-transformer (class*:make-name-transformer name))
   (:export-class-name-p t)
   (:export-accessor-names-p t)
