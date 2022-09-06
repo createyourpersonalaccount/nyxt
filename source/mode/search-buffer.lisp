@@ -12,11 +12,11 @@
    (test-function
     #'search-string
     :type function
-    :documentation "The function that determines whether a search match is found.
-
-You can redefine it to enable regex-based search, for example:
-\(define-configuration nyxt/search-buffer-mode:search-buffer-mode
-  ((nyxt/search-buffer-mode:test-function #'cl-ppcre:scan)))")
+    :documentation "The function that determines whether a search match is found.")
+   (test-regex-function
+    #'cl-ppcre:scan
+    :type function
+    :documentation "Similar to `test-function' but supports regex.")
    (style
     (theme:themed-css (theme *browser*)
       (".nyxt-search-hint"
