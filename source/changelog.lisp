@@ -464,7 +464,11 @@ SLY install.")
    (:li (:nxref :class-name 'nyxt/editor-mode:editor-mode) " is improved and cleaned up in general.")
    (:li (:code "execute-command")
         " now can evaluate arbitrary Lisp code and provide you with the inline
-documentation for functions."))
+documentation for functions.")
+   (:li "New " (:nxref :class-name 'nyxt/remembrance-mode:remembrance-mode)
+        " to automatically cache the visited page content. "
+        "The cache can be looked up and the page textual content can be displayed even offline."
+        "See " (:nxref :function 'nyxt/remembrance-mode:recollect-visited-page) "."))
 
   (:h3 "Bindings")
   (:ul
