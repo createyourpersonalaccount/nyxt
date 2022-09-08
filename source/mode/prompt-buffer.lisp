@@ -44,8 +44,8 @@ default)."
        "f1 b" 'run-prompt-buffer-command
        "f1 m" 'describe-prompt-buffer
        "return" 'return-selection
-       "M-return" 'return-selection-over-action
        "C-return" 'run-selection-action
+       "M-return" 'return-marks-action
        "tab" 'insert-selection
        ; TODO: This is the Emacs Helm binding.  Better?
        "C-c C-f" 'toggle-selection-actions-enabled
@@ -328,8 +328,8 @@ current unmarked selection."
    (prompter:constructor (prompt-buffer-return-actions))
    (prompter:suggestion-maker 'make-action-suggestion)))
 
-(define-command-prompt return-selection-over-action (prompt-buffer)
   "Prompt for an action to run over PROMPT-BUFFER selection."
+(define-command-prompt return-marks-action (prompt-buffer)
   (if (equal (mapcar #'type-of (prompter:sources (current-prompt-buffer)))
              '(action-source))
       (echo "Already displaying return-actions of previous prompt buffer.")
