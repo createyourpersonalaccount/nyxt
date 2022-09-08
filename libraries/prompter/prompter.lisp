@@ -167,13 +167,18 @@ compution is not finished.")))
 
 (defmethod (setf selection) (value (prompter prompter))
   (setf (slot-value prompter 'selection) value)
-  (let ((source (selected-source prompter)))
-    (when (selection-actions-enabled-p source)
-      (if (< 0 (selection-actions-delay source))
-          (run-thread "Prompter selection action thread"
-            (sleep (selection-actions-delay source))
-            (call-selection-action prompter))
-          (call-selection-action prompter)))))
+  (call-selection-action prompter))
+
+(export-always 'call-selection-action)
+(defmethod call-selection-action ((prompter prompter))
+  (sera:and-let* ((source (selected-source prompter))
+                  (_ (selection-actions-enabled-p source))
+                  (delay (selection-actions-delay source))
+                  (action (default-selection-action source))
+                  (suggestion (selected-suggestion prompter)))
+    (run-thread "Prompter selection action thread"
+      (when delay (sleep delay))
+      (funcall action (value suggestion)))))
 
 (export-always 'input)
 (defmethod (setf input) (text (prompter prompter))
@@ -198,12 +203,6 @@ Signal destruction by sending a value to PROMPTER's `interrupt-channel'."
   ;; TODO: Interrupt before or after destructor?
   (calispel:! (sync-interrupt-channel (sync-queue prompter)) t)
   (calispel:! (interrupt-channel prompter) t))
-
-(export-always 'call-selection-action)
-(defun call-selection-action (prompter)
-  (sera:and-let* ((action (first (selection-actions (selected-source prompter))))
-                  (suggestion (selected-suggestion prompter)))
-    (funcall action (value suggestion))))
 
 (defun select (prompter steps &key wrap-over-p)
   "Select `suggestion' by jumping STEPS forward.
