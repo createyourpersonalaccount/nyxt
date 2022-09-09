@@ -1290,7 +1290,7 @@ See `finalize-buffer'."
               suggestions))))
    (prompter:selection-actions-enabled-p t)
    (prompter:selection-actions
-    (lambda (color)
+    (lambda-command color-input-area (color)
       (ps-labels :buffer (current-prompt-buffer)
         ((color-input-area
           (color)
