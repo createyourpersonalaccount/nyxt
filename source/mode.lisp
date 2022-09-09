@@ -340,7 +340,7 @@ If it's a single buffer, return it directly (not as a list)."
                          :prompt "Enable mode(s) for buffer(s)"
                          :sources (make-instance 'buffer-source
                                                  :multi-selection-p t
-                                                 :return-actions '())))))
+                                                 :return-actions #'identity)))))
          (modes (if modes
                     (uiop:ensure-list modes)
                     (unless explicit-modes-p
@@ -376,7 +376,7 @@ If it's a single buffer, return it directly (not as a list)."
                          :prompt "Enable mode(s) for buffer(s)"
                          :sources (make-instance 'buffer-source
                                                  :multi-selection-p t
-                                                 :return-actions '())))))
+                                                 :return-actions #'identity)))))
          (modes (if modes
                     (uiop:ensure-list modes)
                     (unless explicit-modes-p
