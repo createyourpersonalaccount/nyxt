@@ -33,9 +33,7 @@ inherited from the superclasses.")
     :documentation "Unique identifier for a buffer.")
    ;; TODO: Or maybe a dead-buffer should just be a buffer history?
    (profile
-    (alex:if-let ((profile-class (find-profile-class (getf *options* :profile))))
-      (make-instance profile-class)
-      *global-profile*)
+    *global-profile*
     :type nyxt-profile
     :documentation "Buffer profiles are used to specialize the behavior of
 various parts, such as the path of all data files.")
@@ -162,13 +160,11 @@ access the initialized buffer.")
    (enable-mode-hook
     (make-instance 'hook-mode)
     :type hook-mode
-    :documentation "Hook run on every mode activation, after the mode-specific
-hook.")
+    :documentation "Hook run on mode enabling, after the mode-specific hook.")
    (disable-mode-hook
     (make-instance 'hook-mode)
     :type hook-mode
-    :documentation "Hook run on every mode deactivation, after the mode-specific
-hook."))
+    :documentation "Hook run on mode disabling, after the mode-specific hook."))
   (:export-class-name-p t)
   (:export-accessor-names-p t)
   (:export-predicate-name-p t)
