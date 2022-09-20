@@ -393,7 +393,7 @@ guarantee of the same result."
                 ;; buffer and `form' to have this buffer as the buffer-var.
                 (setf (url buffer) (quri:uri url))
                 (apply (form internal-page) args)))))))
-  :local-p t)
+  :secure-p t)
 
 (ps:defpsmacro nyxt/ps::lisp-eval ((&key (buffer '(nyxt:current-buffer)) title callback) &body form)
   "Request the lisp: URL and invoke CALLBACK when there's a successful result.
