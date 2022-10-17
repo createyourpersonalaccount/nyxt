@@ -242,11 +242,16 @@ For instance, to include images:
            :key #'prompter:value)
         (append matching-hints other-hints))))
    (prompter:selection-actions
-    (unless (fit-to-prompt-p (find-submode 'hint-mode))
-      (lambda-command highlight-selected-hint* (suggestion)
-        "Highlight hint."
-        (highlight-selected-hint :element suggestion
-                                 :scroll nil))))
+    (list (unless (fit-to-prompt-p (find-submode 'hint-mode))
+            (lambda-command highlight-selected-hint* (suggestion)
+              "Highlight hint."
+              (highlight-selected-hint :element suggestion)))
+          (lambda-command scroll-to-selected-hint* (suggestion)
+            "Highlight hint."
+            (highlight-selected-hint :element suggestion :scroll t))
+          (lambda-command copy-selected-hint* (suggestion)
+            "Copy hint URL to clipboard."
+            (copy-to-clipboard (plump:attribute suggestion "href")))))
    (prompter:marks-actions
     (lambda (marks)
       (let ((%marks (mapcar (lambda (mark) (str:concat "#nyxt-hint-" (identifier mark)))
