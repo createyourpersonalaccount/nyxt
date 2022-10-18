@@ -247,8 +247,7 @@ toggled exclusively for a given URL.")
          (:li "Automatically, by setting "
               (:nxref :slot 'prompt-on-mode-toggle-p :class-name 'modable-buffer)
               " to non-nil (refer to the "
-              (:a :href "nyxt:manual#configuration" "configuration section")
-              " for help)."))
+              (:a :href "#configuration" "configuration section") " for help)."))
         (:p "All rules are stored in the corresponding auto-rules file, "
             (:code "(files:expand (make-instance 'auto-rules-file))")
             ", which " (:u "is intended for read and write purposes")". You can
