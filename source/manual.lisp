@@ -250,7 +250,7 @@ toggled exclusively for a given URL.")
               " to non-nil (refer to the "
               (:a :href "#configuration" "configuration section") " for help)."))
         (:p "All rules are stored in the corresponding auto-rules file, "
-            (:code rules-files) ", which " (:u "is intended for read and write
+            (:code rules-file) ", which " (:u "is intended for read and write
 purposes")". You can find instructions at the top of mentioned file. The gist is
 that rules are mere Lisp lists which start with a condition that checks the
 URL. When conditions are met, modes are toggled. Besides user-defined
