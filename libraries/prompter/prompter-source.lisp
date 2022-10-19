@@ -209,9 +209,8 @@ The predicate works the same as the `sort' predicate.")
 
    (return-actions
     #'identity
-    :type (or null
-              (or function function-symbol)
-              (cons (or function function-symbol) *))
+    :type (or null function function-symbol
+              (list-of function) (list-of function-symbol))
     :accessor nil
     :export nil
     :documentation "List of funcallables that can be run on `suggestion's of
