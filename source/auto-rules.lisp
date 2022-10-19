@@ -407,6 +407,37 @@ For the storage format see the comment in the head of your `auto-rules-file'."
 ;; (MODE-SYMBOL INIT-ARGS), where init-args are passed to the mode when
 ;; instantiated.
 
+;; Conditions work this way:
+;; - match-domain matches the URL domains only.
+;;   Example: (match-domain \"reddit.com\") will work for all of Reddit.
+
+;; - match-host is more specific -- it activates only on certain subdomains of
+;;   the website.
+;;   Example: (match-host \"old.reddit.com\") will work on old Reddit only.
+
+;; - match-regex works for any address that matches a given regex. You can add
+;;   these manually, but remember: with great regex comes great responsibility!
+;;   Example: (match-regex \"https://github\\.com/.*/.*\") will activate only in
+;;   repos on GitHub.
+
+;; - match-port matches the port number(s) only.
+;;   Example: (match-port 8000 8080) will work for e.g. localhost:8000,
+;;   127.0.0.1:8080, etc.
+
+;; - String format matches the exact URL and nothing else
+;;   Example: \"https://lispcookbook.github.io/cl-cookbook/pattern_matching.html\"
+;;   will work on the Pattern Matching article of CL Cookbook, and nowhere else.
+
+;; - Any other Lisp form is evaluated and the result of it is called with the
+;;   URL as an argument. This means you can write arbitrary Lisp code to
+;;   activate auto-rules.
+;;   Note: The URL is passed as quri:uri object.
+;;   Example: (lambda (url) (string= \"/my/path\" (quri:uri-path url)))
+
+;; You can write additional URLs in the parenthesized conditions, to reuse the
+;; rule for other URL.
+;; Example: (match-host \"reddit.com\" \"old.reddit.com\" \"www6.reddit.com\")
+
 ;;; Rules:
 
 ")
