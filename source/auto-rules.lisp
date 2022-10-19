@@ -159,9 +159,12 @@ ARGS as in make-instance of `auto-rule'."
 (-> url-infer-match (string) list)
 (defun url-infer-match (url)
   "Infer the best `test' for `auto-rule', based on the form of URL.
+
 The rules are:
-- If it's a plain domain-only URL (i.e. \"http://domain.com\") -- then use `match-domain'.
-- If it's host with subdomains (\"http://whatever.subdomain.domain.com\") -- use `match-host'.
+- If it's a plain domain-only URL (i.e. \"http://domain.com\") -- then use
+  `match-domain'.
+- If it's host with subdomains (\"http://whatever.subdomain.domain.com\") -- use
+  `match-host'.
 - Use `match-url' otherwise."
   (let ((url (or (ignore-errors (quri:uri url)) url)))
     (if (and (quri:uri-p url)
@@ -218,14 +221,18 @@ The rules are:
     (values (or list boolean) &optional))
 (defun mode-covered-by-auto-rules-p (mode buffer enable-p)
   "Says whether auto-rules in BUFFER already knows what to do with MODE.
+
 ENABLE-P is whether mode is being enabled (non-nil) or disabled (nil).
+
 Mode is covered if:
-- It's not rememberable (has `rememberable-p' set to nil).
+- `rememberable-p' is to nil.
 - There is a rule it matches and:
   - when mode is ENABLED-P and part of `included' modes in the rule, or
   - when mode is not ENABLED-P and part of `excluded' modes in the rule.
-- If there's no matching rule but it's part of `last-active-modes' and needs to be ENABLED-P.
-- If it's getting disabled (not ENABLED-P) after being enabled by a rule on the previous page."
+- If there's no matching rule but it's part of `last-active-modes' and needs to
+  be ENABLED-P.
+- If it's getting disabled (not ENABLED-P) after being enabled by a rule on the
+  previous page."
   (let ((mode (normalize-mode mode)))
     (flet ((invocation-member (list)
              (member mode list :test #'mode=)))
@@ -247,7 +254,7 @@ Mode is covered if:
 (export-always 'apply-auto-rules)
 (defun apply-auto-rules (url buffer)
   "Apply the rules based on the URL being loaded.
-Implies that the request is a top-level one"
+Implies that the request is a top-level one."
   (unless (bypass-auto-rules-p buffer)
     (let* ((rules (matching-auto-rules url buffer))
            (previous-url (previous-url buffer))
@@ -262,10 +269,10 @@ Implies that the request is a top-level one"
       (setf (previous-url buffer) url))))
 
 (define-command-global save-non-default-modes-for-future-visits ()
-  "Save the modes present in `default-modes' and not present in current modes as :excluded,
-and modes that are present in mode list but not in `default-modes' as :included,
-to one of auto-rules. Apply the resulting rule for all the future visits to this URL,
-inferring the matching condition with `url-infer-match'.
+  "Save the modes present in `default-modes' and not present in current modes as
+:excluded, and modes that are present in mode list but not in `default-modes' as
+:included, to one of auto-rules. Apply the resulting rule for all the future
+visits to this URL, inferring the matching condition with `url-infer-match'.
 
 This command does not save non-rememberable modes. If you want auto-rules to
 remember a particular mode, configure it to be `rememberable-p' in your
@@ -292,8 +299,9 @@ For the storage format see the comment in the head of your `auto-rules-file'."
                               :test #'mode=))))
 
 (define-command-global save-exact-modes-for-future-visits ()
-  "Store the exact list of enabled modes to auto-rules for all the future visits of this
-domain/host/URL/group of websites inferring the suitable matching condition by user input.
+  "Store the exact list of enabled modes to auto-rules for all the future visits
+of this domain/host/URL/group of websites inferring the suitable matching
+condition by user input.
 Uses `url-infer-match', see its documentation for matching rules.
 
 This command does not save non-rememberable modes. If you want auto-rules to
