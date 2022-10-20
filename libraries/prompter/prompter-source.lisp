@@ -312,7 +312,7 @@ executed.  Also see `selection-actions-delay'.")
   (:accessor-name-transformer (class*:make-name-transformer name))
   (:documentation "A prompter source instance is meant to be used by a
 `prompter' object.  See its `sources' slot.  A source is a consistent collection
-of suggestions, filters, return-actions.
+of suggestions, filters and actions.
 
 When a `prompter' `input' is set, the `update' function is called over all
 sources.  This function pipelines `initial-suggestions' through
